@@ -1,70 +1,25 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, ScrollView, View } from "react-native";
+// import QuestionComponent from "./components/QuestionComponent";
+import { Header, Icon, Button, Input, Text } from "react-native-elements";
+import LessonPanel from "./components/LessonPanel";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import HomeScreen from "./components/HomeScreen";
 import QuestionComponent from "./components/QuestionComponent";
-import { Header, Icon } from "react-native-elements";
+import LoginScreen from "./components/LoginScreen";
 
-const MenuPanel = ({ isVisible, onClose }) => {
-  return isVisible ? (
-    <View style={styles.menuPanel}>
-      <Text style={styles.menuOption}>Option 1</Text>
-      <Text style={styles.menuOption}>Option 2</Text>
-      <Text style={styles.menuOption}>Option 3</Text>
-      <Text style={styles.menuOption} onPress={onClose}>
-        Close
-      </Text>
-    </View>
-  ) : null;
-};
+const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const handleMenuPress = () => {
-    setIsMenuOpen(true);
-  };
-
-  const handleMenuClose = () => {
-    setIsMenuOpen(false);
-  };
-
   return (
-    <View style={styles.container}>
-      <Header
-        leftComponent={
-          <Icon name="menu" color="#fff" onPress={handleMenuPress} />
-        }
-        centerComponent={{
-          text: "Welcome to My App",
-          style: { color: "#fff", fontSize: 18 },
-        }}
-        containerStyle={{
-          backgroundColor: "#4CAF50",
-          justifyContent: "space-around",
-          paddingTop: 60,
-        }}
-      />
-      <MenuPanel isVisible={isMenuOpen} onClose={handleMenuClose} />
-      <Text>Test up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Question" component={QuestionComponent} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  menuPanel: {
-    top: 50,
-    left: 0,
-    width: "100%",
-    backgroundColor: "#fff",
-    zIndex: 1,
-    padding: 10,
-  },
-  menuOption: {
-    fontSize: 18,
-    marginVertical: 5,
-  },
-});
