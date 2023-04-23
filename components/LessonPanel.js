@@ -1,62 +1,44 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, Text } from "react-native-elements";
 import { useNavigation } from "@react-navigation/native";
 import QuestionComponent from "./QuestionComponent";
 
 const LessonPanel = () => {
-  const lessons = [
-    {
-      id: 1,
-      title: "Lesson 1",
-    },
-    {
-      id: 2,
-      title: "Lesson 2",
-    },
-    {
-      id: 3,
-      title: "Lesson 3",
-    },
-    {
-      id: 4,
-      title: "Lesson 4",
-    },
-    {
-      id: 5,
-      title: "Lesson 5",
-    },
-    {
-      id: 6,
-      title: "Lesson 6",
-    },
-    {
-      id: 7,
-      title: "Lesson 7",
-    },
-    {
-      id: 8,
-      title: "Lesson 8",
-    },
-    {
-      id: 9,
-      title: "Lesson 9",
-    },
-    {
-      id: 10,
-      title: "Lesson 10",
-    },
-    {
-      id: 11,
-      title: "Lesson 11",
-    },
-  ];
-
+  const [lessons, setLessons] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
-  const handleGoPress = (lessonId) => {
-    navigation.navigate("Question", { lessonId });
+  useEffect(() => {
+    const fetchLessons = async () => {
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:5000/test_lesson_question_ids"
+        );
+        const json = await response.json();
+        setLessons(json);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLessons();
+  }, []);
+
+  const handleGoPress = (lessonId, questionIds) => {
+    console.log(lessonId, questionIds);
+    navigation.navigate("QuestionComponent", { lessonId, questionIds });
   };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading lessons...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -67,7 +49,7 @@ const LessonPanel = () => {
             title="Go"
             buttonStyle={styles.button}
             titleStyle={styles.buttonText}
-            onPress={() => handleGoPress(lesson.id)}
+            onPress={() => handleGoPress(lesson.id, lesson.questions)}
           />
         </View>
       ))}

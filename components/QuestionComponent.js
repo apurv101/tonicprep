@@ -1,60 +1,69 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Text, Button } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View } from "react-native";
+import { Button, Text } from "react-native-elements";
+import { useRoute } from "@react-navigation/native";
 
-const questions = [
-  {
-    question: "What is the capital of France?",
-    options: ["Paris", "Berlin", "Rome", "Madrid"],
-    correctAnswer: "Paris",
-  },
-  {
-    question: "What is the largest country in the world by area?",
-    options: ["Russia", "China", "Canada", "USA"],
-    correctAnswer: "Russia",
-  },
-  // add more questions here...
-];
+const QuestionComponent = () => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-const QuestionComponent = ({ lesson, onFinish }) => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [score, setScore] = useState(0);
+  const route = useRoute();
 
-  const handleOptionPress = (option) => {
-    setSelectedOption(option);
-  };
+  useEffect(() => {
+    console.log("test");
+    console.log(route.params.lessonId);
+    const fetchQuestion = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:5000/test_question/${route.params.questionIds[currentQuestionIndex]}`
+        );
+        const json = await response.json();
+        setCurrentQuestion(json);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleNextPress = () => {
-    const question = questions[currentQuestion];
-    const isCorrect = question.correctAnswer === selectedOption;
-    if (isCorrect) {
-      setScore(score + 1);
-    }
-    setSelectedOption(null);
-    if (currentQuestion === questions.length - 1) {
-      onFinish(score);
+    fetchQuestion();
+  }, [currentQuestionIndex]);
+
+  const handleAnswerPress = () => {
+    if (currentQuestionIndex < route.params.questionIds.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setLoading(true);
     } else {
-      setCurrentQuestion(currentQuestion + 1);
+      // If all questions are answered, go back to LessonPanel
+      // You can customize this behavior as per your requirement
+      setCurrentQuestion(null);
     }
   };
 
-  const question = questions[currentQuestion];
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading question...</Text>
+      </View>
+    );
+  }
+
+  if (!currentQuestion) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.lessonTitle}>{lesson}</Text>
-      <View style={styles.questionContainer}>
-        <Text style={styles.questionText}>{question.question}</Text>
-        {question.options.map((option) => (
-          <Button
-            key={option}
-            title={option}
-            onPress={() => handleOptionPress(option)}
-            color={option === selectedOption ? "#6C5B7B" : "#000"}
-          />
-        ))}
-        <Button title="Next" onPress={handleNextPress} />
-      </View>
+      <Text style={styles.title}>{currentQuestion.question}</Text>
+      {currentQuestion.options.map((option) => (
+        <Button
+          title={option}
+          buttonStyle={styles.button}
+          titleStyle={styles.buttonText}
+          onPress={handleAnswerPress}
+        />
+      ))}
     </View>
   );
 };
@@ -64,19 +73,20 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  lessonTitle: {
-    fontSize: 24,
+  title: {
+    fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
   },
-  questionContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  button: {
+    backgroundColor: "#4CAF50",
+    borderRadius: 5,
+    padding: 10,
+    marginTop: 10,
   },
-  questionText: {
-    fontSize: 18,
-    marginBottom: 20,
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
 
