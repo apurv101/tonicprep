@@ -6,6 +6,7 @@ import AppContext from "../AppContext";
 
 const QuestionComponent = () => {
   const { userId, setUserId } = useContext(AppContext);
+  const { baseUrl, setBaseUrl } = useContext(AppContext);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +22,7 @@ const QuestionComponent = () => {
     const fetchQuestion = async () => {
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/get_question/${route.params.questionIds[currentQuestionIndex]}`
+          `${baseUrl}/get_question/${route.params.questionIds[currentQuestionIndex]}`
         );
         const json = await response.json();
         console.log(json);
@@ -39,7 +40,7 @@ const QuestionComponent = () => {
   const handleAnswerPress = async () => {
     const isCorrect = currentQuestion.answer === selectedOption;
 
-    const response = await fetch("http://127.0.0.1:5000/update_tonic_score", {
+    const response = await fetch(`${baseUrl}/update_tonic_score`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

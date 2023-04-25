@@ -7,18 +7,19 @@ import AppContext from "../AppContext";
 
 const LessonPanel = () => {
   const { userId, setUserId } = useContext(AppContext);
+  const { baseUrl, setBaseUrl } = useContext(AppContext);
   const [lessons, setLessons] = useState([]);
+  // const [questionIds, setQuestionIds] = useState([]);
+  // const [progressStatus, setProgressStatus] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
-  console.log(`http://127.0.0.1:5000/lesson_question_ids/${userId}`);
+  console.log(`${baseUrl}/get_lessons/${userId}`);
 
   useEffect(() => {
     const fetchLessons = async () => {
       try {
         if (userId) {
-          const response = await fetch(
-            `http://127.0.0.1:5000/lesson_question_ids/${userId}`
-          );
+          const response = await fetch(`${baseUrl}/get_lessons/${userId}`);
           const json = await response.json();
           setLessons(json);
         }
@@ -32,13 +33,46 @@ const LessonPanel = () => {
     fetchLessons();
   }, [userId]);
 
-  const handleGoPress = (lessonId, questionIds, progressStatus) => {
-    console.log(lessonId, questionIds);
-    navigation.navigate("QuestionComponent", {
-      lessonId,
-      questionIds,
-      progressStatus,
-    });
+  const fetchQuestions = async (lessonId, userId) => {
+    try {
+      if (userId) {
+        const response = await fetch(
+          `${baseUrl}/lesson_question_ids/${lessonId}/${userId}`
+        );
+        const json = await response.json();
+        const questionIds = json["question_ids"];
+        const progressStatus = json["progress_status"];
+
+        return { questionIds, progressStatus };
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleGoPress = async (lessonId) => {
+    console.log(lessonId);
+
+    setLoading(true);
+
+    fetchQuestions(lessonId, userId);
+
+    try {
+      const { questionIds, progressStatus } = await fetchQuestions(
+        lessonId,
+        userId
+      );
+
+      navigation.navigate("QuestionComponent", {
+        lessonId,
+        questionIds,
+        progressStatus,
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -58,13 +92,7 @@ const LessonPanel = () => {
             title="Go"
             buttonStyle={styles.button}
             titleStyle={styles.buttonText}
-            onPress={() =>
-              handleGoPress(
-                lesson.id,
-                lesson.question_ids,
-                lesson.progress_status
-              )
-            }
+            onPress={() => handleGoPress(lesson.id)}
           />
         </View>
       ))}

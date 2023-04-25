@@ -16,6 +16,11 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [userId, setUserId] = useState("");
+  // const [baseUrl, setBaseUrl] = useState("http://127.0.0.1:5000");
+
+  const [baseUrl, setBaseUrl] = useState(
+    "https://safe-depths-30174.herokuapp.com"
+  );
 
   const checkUserId = async () => {
     try {
@@ -47,7 +52,7 @@ export default function App() {
   }, []);
 
   return (
-    <AppProvider value={{ userId, setUserId }}>
+    <AppProvider value={{ userId, setUserId, baseUrl, setBaseUrl }}>
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="Home" component={HomeScreen} />
