@@ -1,22 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, Text } from "react-native-elements";
 import { useNavigation } from "@react-navigation/native";
 import QuestionComponent from "./QuestionComponent";
+import AppContext from "../AppContext";
 
 const LessonPanel = () => {
+  const { userId, setUserId } = useContext(AppContext);
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
+  console.log(`http://127.0.0.1:5000/lesson_question_ids/${userId}`);
 
   useEffect(() => {
     const fetchLessons = async () => {
       try {
-        const response = await fetch(
-          "http://127.0.0.1:5000/test_lesson_question_ids"
-        );
-        const json = await response.json();
-        setLessons(json);
+        if (userId) {
+          const response = await fetch(
+            `http://127.0.0.1:5000/lesson_question_ids/${userId}`
+          );
+          const json = await response.json();
+          setLessons(json);
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -25,11 +30,15 @@ const LessonPanel = () => {
     };
 
     fetchLessons();
-  }, []);
+  }, [userId]);
 
-  const handleGoPress = (lessonId, questionIds) => {
+  const handleGoPress = (lessonId, questionIds, progressStatus) => {
     console.log(lessonId, questionIds);
-    navigation.navigate("QuestionComponent", { lessonId, questionIds });
+    navigation.navigate("QuestionComponent", {
+      lessonId,
+      questionIds,
+      progressStatus,
+    });
   };
 
   if (loading) {
@@ -49,7 +58,13 @@ const LessonPanel = () => {
             title="Go"
             buttonStyle={styles.button}
             titleStyle={styles.buttonText}
-            onPress={() => handleGoPress(lesson.id, lesson.questions)}
+            onPress={() =>
+              handleGoPress(
+                lesson.id,
+                lesson.question_ids,
+                lesson.progress_status
+              )
+            }
           />
         </View>
       ))}

@@ -1,24 +1,30 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, Text } from "react-native-elements";
 import { useRoute } from "@react-navigation/native";
+import AppContext from "../AppContext";
 
 const QuestionComponent = () => {
+  const { userId, setUserId } = useContext(AppContext);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedOption, setSelectedOption] = useState(null);
 
   const route = useRoute();
 
   useEffect(() => {
     console.log("test");
-    console.log(route.params.lessonId);
+    console.log(userId);
+    // console.log(route.params.lessonId);
+
     const fetchQuestion = async () => {
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/test_question/${route.params.questionIds[currentQuestionIndex]}`
+          `http://127.0.0.1:5000/get_question/${route.params.questionIds[currentQuestionIndex]}`
         );
         const json = await response.json();
+        console.log(json);
         setCurrentQuestion(json);
       } catch (error) {
         console.error(error);
@@ -30,9 +36,30 @@ const QuestionComponent = () => {
     fetchQuestion();
   }, [currentQuestionIndex]);
 
-  const handleAnswerPress = () => {
+  const handleAnswerPress = async () => {
+    const isCorrect = currentQuestion.answer === selectedOption;
+
+    const response = await fetch("http://127.0.0.1:5000/update_tonic_score", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id: userId, // replace with actual user id
+        question_id: currentQuestion.id,
+        answered_correct: isCorrect,
+      }),
+    });
+    // const json = await response.json();
+    // console.log("TonicScore response: ", json);
+
+    // Update the progress status locally
+    const updatedProgressStatus = [...route.params.progressStatus];
+    updatedProgressStatus[currentQuestionIndex] = isCorrect;
     if (currentQuestionIndex < route.params.questionIds.length - 1) {
+      console.log("changing question now.....");
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedOption(null);
       setLoading(true);
     } else {
       // If all questions are answered, go back to LessonPanel
@@ -52,7 +79,6 @@ const QuestionComponent = () => {
   if (!currentQuestion) {
     return null;
   }
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{currentQuestion.question}</Text>
