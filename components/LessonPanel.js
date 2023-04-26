@@ -13,7 +13,7 @@ const LessonPanel = () => {
   // const [progressStatus, setProgressStatus] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
-  console.log(`${baseUrl}/get_lessons/${userId}`);
+  // console.log(`${baseUrl}/get_lessons/${userId}`);
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -63,10 +63,13 @@ const LessonPanel = () => {
         userId
       );
 
+      const nullIndex = progressStatus.indexOf(null);
+
       navigation.navigate("QuestionComponent", {
         lessonId,
         questionIds,
         progressStatus,
+        nullIndex,
       });
     } catch (error) {
       console.error(error);
@@ -87,9 +90,38 @@ const LessonPanel = () => {
     <View style={styles.container}>
       {lessons.map((lesson) => (
         <View key={lesson.id} style={styles.lessonContainer}>
-          <Text style={styles.title}>{lesson.title}</Text>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{lesson.title}</Text>
+            <View style={styles.progressBar}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  {
+                    width: `${
+                      (lesson.correct_answered / lesson.total_questions) *
+                      100 *
+                      1.5
+                    }%`,
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.progressBarFill,
+                  {
+                    width: `${
+                      (lesson.incorrect_answered / lesson.total_questions) *
+                      100 *
+                      1.5
+                    }%`,
+                    backgroundColor: "red",
+                  },
+                ]}
+              />
+            </View>
+          </View>
           <Button
-            title="Go"
+            title="Start →"
             buttonStyle={styles.button}
             titleStyle={styles.buttonText}
             onPress={() => handleGoPress(lesson.id)}
@@ -103,21 +135,23 @@ const LessonPanel = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 5,
   },
   lessonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
-    padding: 20,
-    backgroundColor: "#f9c2ff",
+    marginBottom: 5,
+    padding: 30,
+    backgroundColor: "#fffcf5",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#e1d7c1",
+    borderRadius: 10,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
+
   button: {
+    flex: 1,
     backgroundColor: "#4CAF50",
     borderRadius: 5,
     padding: 10,
@@ -125,6 +159,37 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  lessonInfoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  titleContainer: {
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  progressBar: {
+    height: 8,
+    width: 200,
+    marginLeft: 10,
+    backgroundColor: "#d8d8d8",
+    borderRadius: 5,
+    overflow: "hidden",
+    marginTop: 10,
+  },
+  progressBarFill: {
+    height: 8,
+    backgroundColor: "green",
+    borderRadius: 5,
+    position: "absolute",
+    top: 0,
+    bottom: 0,
   },
 });
 

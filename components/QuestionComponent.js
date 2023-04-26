@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { StyleSheet, View } from "react-native";
-import { Button, Text } from "react-native-elements";
-import { useRoute } from "@react-navigation/native";
+import { Button, Text, Card } from "react-native-elements";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import AppContext from "../AppContext";
 
 const QuestionComponent = () => {
@@ -11,8 +11,26 @@ const QuestionComponent = () => {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [showResultCard, setShowResultCard] = useState(false);
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
 
   const route = useRoute();
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    if (route.params.nullIndex !== -1) {
+      setCurrentQuestionIndex(route.params.nullIndex);
+      route.params.nullIndex = -1;
+    }
+  });
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: `Question ${currentQuestionIndex + 1} of ${
+        route.params.questionIds.length
+      }`,
+    });
+  }, [currentQuestionIndex]);
 
   useEffect(() => {
     console.log("test");
@@ -25,10 +43,10 @@ const QuestionComponent = () => {
           `${baseUrl}/get_question/${route.params.questionIds[currentQuestionIndex]}`
         );
         const json = await response.json();
-        console.log(json);
+        // console.log(json);
         setCurrentQuestion(json);
       } catch (error) {
-        console.error(error);
+        // console.error(error);
       } finally {
         setLoading(false);
       }
@@ -37,8 +55,14 @@ const QuestionComponent = () => {
     fetchQuestion();
   }, [currentQuestionIndex]);
 
-  const handleAnswerPress = async () => {
-    const isCorrect = currentQuestion.answer === selectedOption;
+  const handleAnswerPress = async (option) => {
+    setSelectedOption(option);
+
+    // console.log(option);
+    // console.log(currentQuestion.answer);
+
+    const isCorrect = currentQuestion.answer === option;
+    // console.log(isCorrect);
 
     const response = await fetch(`${baseUrl}/update_tonic_score`, {
       method: "POST",
@@ -49,23 +73,40 @@ const QuestionComponent = () => {
         user_id: userId, // replace with actual user id
         question_id: currentQuestion.id,
         answered_correct: isCorrect,
+        lesson_id: route.params.lessonId,
       }),
     });
-    // const json = await response.json();
-    // console.log("TonicScore response: ", json);
 
     // Update the progress status locally
     const updatedProgressStatus = [...route.params.progressStatus];
     updatedProgressStatus[currentQuestionIndex] = isCorrect;
+
+    setIsAnswerCorrect(isCorrect);
+    setShowResultCard(true);
+
+    // if (currentQuestionIndex < route.params.questionIds.length - 1) {
+    //   console.log("changing question now.....");
+    //   setCurrentQuestionIndex(currentQuestionIndex + 1);
+    //   setSelectedOption(null);
+    //   setLoading(true);
+    // } else {
+    //   // If all questions are answered, go back to LessonPanel
+    //   // You can customize this behavior as per your requirement
+    //   setCurrentQuestion(null);
+    // }
+  };
+
+  const handleNextPress = () => {
     if (currentQuestionIndex < route.params.questionIds.length - 1) {
-      console.log("changing question now.....");
+      console.log("here");
+      console.log("here");
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      console.log(currentQuestionIndex);
       setSelectedOption(null);
       setLoading(true);
+      setShowResultCard(false);
     } else {
-      // If all questions are answered, go back to LessonPanel
-      // You can customize this behavior as per your requirement
-      setCurrentQuestion(null);
+      navigation.navigate("Home");
     }
   };
 
@@ -88,9 +129,30 @@ const QuestionComponent = () => {
           title={option}
           buttonStyle={styles.button}
           titleStyle={styles.buttonText}
-          onPress={handleAnswerPress}
+          onPress={() => handleAnswerPress(option)}
         />
       ))}
+      {showResultCard && (
+        <Card containerStyle={styles.cardContainer}>
+          <Text h4 style={styles.cardText}>
+            {isAnswerCorrect ? "Correct!" : "Incorrect!"}
+          </Text>
+
+          <Text h5 style={styles.cardText}>
+            Correct answer is {currentQuestion.answer}
+          </Text>
+
+          <Text h6 style={styles.meaningText}>
+            {currentQuestion.meaning}
+          </Text>
+          <Button
+            title="Next →"
+            buttonStyle={styles.nextButton}
+            titleStyle={styles.buttonText}
+            onPress={handleNextPress}
+          />
+        </Card>
+      )}
     </View>
   );
 };
@@ -106,14 +168,43 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#fffcf5",
     borderRadius: 5,
     padding: 10,
     marginTop: 10,
   },
   buttonText: {
-    color: "white",
+    color: "black",
     fontWeight: "bold",
+  },
+  cardContainer: {
+    position: "absolute",
+    bottom: "5%",
+    left: 0,
+    right: 0,
+    backgroundColor: "white",
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#ccc",
+    flexDirection: "row",
+  },
+  cardText: {
+    fontWeight: "bold",
+    fontSize: 18,
+    paddingTop: 5,
+    paddingBottom: 5,
+  },
+  meaningText: {
+    fontSize: 16,
+    paddingTop: 5,
+    paddingBottom: 5,
+    flex: 1,
+  },
+  nextButton: {
+    backgroundColor: "#4CAF50",
+    borderRadius: 5,
+    padding: 10,
+    flex: 1,
   },
 });
 
