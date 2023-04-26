@@ -13,6 +13,7 @@ const QuestionComponent = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [showResultCard, setShowResultCard] = useState(false);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
+  const [optionsColor, setOptionsColor] = useState(null);
 
   const route = useRoute();
   const navigation = useNavigation();
@@ -45,6 +46,7 @@ const QuestionComponent = () => {
         const json = await response.json();
         // console.log(json);
         setCurrentQuestion(json);
+        setOptionsColor(Array(json.options.length).fill(0));
       } catch (error) {
         // console.error(error);
       } finally {
@@ -84,16 +86,16 @@ const QuestionComponent = () => {
     setIsAnswerCorrect(isCorrect);
     setShowResultCard(true);
 
-    // if (currentQuestionIndex < route.params.questionIds.length - 1) {
-    //   console.log("changing question now.....");
-    //   setCurrentQuestionIndex(currentQuestionIndex + 1);
-    //   setSelectedOption(null);
-    //   setLoading(true);
-    // } else {
-    //   // If all questions are answered, go back to LessonPanel
-    //   // You can customize this behavior as per your requirement
-    //   setCurrentQuestion(null);
-    // }
+    const updatedColors = currentQuestion.options.map((o) => {
+      if (currentQuestion.answer === o) {
+        return 1;
+      } else if (option === o) {
+        return 2;
+      } else {
+        return 0;
+      }
+    });
+    setOptionsColor(updatedColors);
   };
 
   const handleNextPress = () => {
@@ -124,10 +126,17 @@ const QuestionComponent = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{currentQuestion.question}</Text>
-      {currentQuestion.options.map((option) => (
+      {currentQuestion.options.map((option, index) => (
         <Button
+          key={index}
           title={option}
-          buttonStyle={styles.button}
+          buttonStyle={
+            optionsColor[index] === 1
+              ? styles.correctButton
+              : optionsColor[index] === 2
+              ? styles.selectedButton
+              : styles.button
+          }
           titleStyle={styles.buttonText}
           onPress={() => handleAnswerPress(option)}
         />
@@ -139,7 +148,7 @@ const QuestionComponent = () => {
           </Text>
 
           <Text h5 style={styles.cardText}>
-            Correct answer is {currentQuestion.answer}
+            The answer is {currentQuestion.answer}
           </Text>
 
           <Text h6 style={styles.meaningText}>
@@ -169,6 +178,18 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: "#fffcf5",
+    borderRadius: 5,
+    padding: 10,
+    marginTop: 10,
+  },
+  correctButton: {
+    backgroundColor: "#4CAF50",
+    borderRadius: 5,
+    padding: 10,
+    marginTop: 10,
+  },
+  selectedButton: {
+    backgroundColor: "red",
     borderRadius: 5,
     padding: 10,
     marginTop: 10,
