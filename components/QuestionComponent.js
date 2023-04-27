@@ -34,8 +34,8 @@ const QuestionComponent = () => {
   }, [currentQuestionIndex]);
 
   useEffect(() => {
-    console.log("test");
-    console.log(userId);
+    // console.log("test");
+    // console.log(userId);
     // console.log(route.params.lessonId);
 
     const fetchQuestion = async () => {
@@ -100,10 +100,10 @@ const QuestionComponent = () => {
 
   const handleNextPress = () => {
     if (currentQuestionIndex < route.params.questionIds.length - 1) {
-      console.log("here");
-      console.log("here");
+      // console.log("here");
+      // console.log("here");
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-      console.log(currentQuestionIndex);
+      // console.log(currentQuestionIndex);
       setSelectedOption(null);
       setLoading(true);
       setShowResultCard(false);
