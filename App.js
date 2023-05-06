@@ -18,9 +18,7 @@ export default function App() {
   const [userId, setUserId] = useState("");
   // const [baseUrl, setBaseUrl] = useState("http://127.0.0.1:5000");
 
-  const [baseUrl, setBaseUrl] = useState(
-    "https://safe-depths-30174.herokuapp.com"
-  );
+  const [baseUrl, setBaseUrl] = useState("https://apurv101.pythonanywhere.com");
 
   const checkUserId = async () => {
     try {
@@ -33,7 +31,7 @@ export default function App() {
         // user_id is not stored in local storage, store it now
 
         const response = await fetch(
-          "https://safe-depths-30174.herokuapp.com/create_user_id"
+          "https://apurv101.pythonanywhere.com/create_user_id"
         );
         const newUserId = await response.json();
         console.log(newUserId);
